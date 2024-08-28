@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Project Management API
+  description: API for managing projects.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /projects:
+    get:
+      summary: Fetch all projects
+      description: Retrieves a paginated list of projects.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number to retrieve.
+        - in: query
+          name: size
+          schema:
+            type: integer
+          description: The number of items per page.
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: The sorting criteria.
+      responses:
+        '200':
+          description: A paginated list of projects.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectDTO'
+                  totalElements:
+                    type: integer
+                    example: 3
+                  number:
+                    type: integer
+                    example: 0
+                  size:
+                    type: integer
+                    example: 2
+        '400':
+          description: Validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorDto'
+    post:
+      summary: Register a new project
+      description: Creates and registers a new project.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterProjectRequest'
+      responses:
+        '201':
+          description: The newly created project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDTO'
+        '400':
+          description: Validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorDto'
+  /projects/{id}:
+    get:
+      summary: Get project by ID
+      description: Retrieves a specific project by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the project to retrieve.
+      responses:
+        '200':
+          description: The requested project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDTO'
+        '404':
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorDto'
+    put:
+      summary: Modify a project
+      description: Updates an existing project with new data.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the project to modify.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModifyProjectRequest'
+      responses:
+        '200':
+          description: The updated project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDTO'
+        '404':
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorDto'
+        '400':
+          description: Validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorDto'
+components:
+  schemas:
+    ProjectDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Project Omega
+        description:
+          type: string
+          example: A large-scale infrastructure project aimed at revolutionizing transport.
+    RegisterProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Project Alpha
+        description:
+          type: string
+          example: An advanced research project focused on sustainable energy solutions.
+    ModifyProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Project Beta
+        description:
+          type: string
+          example: An updated description for Project Beta.
+    ValidationErrorDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-08-27T16:33:26.6486087"
+        message:
+          type: string
+          example: Validation Errors found
+        validationErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: name
+              message:
+                type: string
+                example: Name must start with a capital letter and be 2-30 characters long
+    NotFoundErrorDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-08-27T16:33:26.6486087"
+        message:
+          type: string
+          example: Project with id=1 not found

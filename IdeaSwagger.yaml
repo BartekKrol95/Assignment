@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: Idea Management API
+  description: API for managing ideas in projects.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /projects/ideas:
+    get:
+      summary: Fetch all ideas
+      description: Retrieves a paginated list of ideas.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: The page number to retrieve.
+        - in: query
+          name: size
+          schema:
+            type: integer
+          description: The number of items per page.
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: The sorting criteria.
+      responses:
+        '200':
+          description: A paginated list of ideas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIdeaDTO'
+        '400':
+          description: Validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorDto'
+    post:
+      summary: Register a new idea
+      description: Creates and registers a new idea.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterIdeaRequest'
+      responses:
+        '201':
+          description: The newly created idea.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaDTO'
+        '400':
+          description: Validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorDto'
+  /projects/ideas/{ideaId}/like:
+    post:
+      summary: Endorse an idea
+      description: Increment the like count for an idea.
+      parameters:
+        - in: path
+          name: ideaId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the idea to endorse.
+      responses:
+        '201':
+          description: The updated idea with incremented likes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaDTO'
+        '404':
+          description: Idea not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorDto'
+  /projects/ideas/{ideaId}/comments:
+    post:
+      summary: Submit a comment on an idea
+      description: Adds a new comment to the specified idea.
+      parameters:
+        - in: path
+          name: ideaId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the idea to comment on.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitCommentRequest'
+      responses:
+        '201':
+          description: The newly created comment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentDTO'
+        '404':
+          description: Idea not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorDto'
+    get:
+      summary: Fetch all comments for an idea
+      description: Retrieves a list of all comments associated with a specific idea.
+      parameters:
+        - in: path
+          name: ideaId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the idea to retrieve comments for.
+      responses:
+        '200':
+          description: A list of comments for the idea.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentDTO'
+        '404':
+          description: Idea not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorDto'
+components:
+  schemas:
+    IdeaDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Space Elevator
+        description:
+          type: string
+          example: A proposal for a cable-based transport system connecting Earth to space.
+        author:
+          type: string
+          example: Arthur C. Clarke
+        graphicDesignerName:
+          type: string
+          example: John Doe
+        likes:
+          type: integer
+          example: 10
+        imageUrl:
+          type: string
+          example: http://example.com/image.png
+    PaginatedIdeaDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdeaDTO'
+        totalElements:
+          type: integer
+          example: 50
+        totalPages:
+          type: integer
+          example: 5
+        size:
+          type: integer
+          example: 10
+        number:
+          type: integer
+          example: 0
+    RegisterIdeaRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Quantum Computing
+        description:
+          type: string
+          example: An advanced computing paradigm based on quantum mechanics.
+        author:
+          type: string
+          example: Richard Feynman
+        graphicDesignerName:
+          type: string
+          example: Jane Doe
+        imageUrl:
+          type: string
+          example: http://example.com/image.png
+    CommentDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorName:
+          type: string
+          example: Neil Armstrong
+        content:
+          type: string
+          example: This idea is revolutionary and could change the future of space travel.
+        createdAt:
+          type: string
+          format: date-time
+          example: 2023-08-27T14:20:00Z
+    SubmitCommentRequest:
+      type: object
+      properties:
+        authorName:
+          type: string
+          example: Carl Sagan
+        content:
+          type: string
+          example: Incredible concept! This could lead us to the stars.
+    ValidationErrorDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-08-27T16:33:26.6486087"
+        message:
+          type: string
+          example: Validation Errors found
+        validationErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: name
+              message:
+                type: string
+                example: Name must start with a capital letter and be 2-30 characters long
+    NotFoundErrorDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-08-27T16:33:26.6486087"
+        message:
+          type: string
+          example: Idea with id=1 not found
